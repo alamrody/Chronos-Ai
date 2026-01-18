@@ -12,10 +12,18 @@ if not api_key:
 else:
     genai.configure(api_key=api_key)
     
-    try:
-        model = genai.GenerativeModel(model_name="models/gemini-1.5-flash")
-    except:
-        model = genai.GenerativeModel(model_name="models/gemini-1.5-pro")
+    # محاولة اختيار أفضل موديل متاح بشكل آمن
+    available_models = ["gemini-1.5-flash", "gemini-1.5-pro", "gemini-pro-vision"]
+    model = None
+    
+    for model_name in available_models:
+        try:
+            model = genai.GenerativeModel(model_name)
+            # تجربة وهمية للتأكد أن الموديل يعمل
+            model.generate_content("test") 
+            break
+        except:
+            continue
 
     st.title("⏳ CHRONOS AI")
     st.write("Merchant Studio: From Photo to Profit")
@@ -27,13 +35,14 @@ else:
         st.image(img, caption="Target Product", use_container_width=True)
         
         if st.button("🚀 Analyze & Generate Listing"):
-            with st.spinner("Chronos is analyzing the image..."):
-                try:
-                    prompt = "Analyze this product image. Provide a catchy title, a professional description in both Arabic and English, and suggest 5 hashtags."
-                    
-                    response = model.generate_content([prompt, img])
-                    
-                    st.success("Success!")
-                    st.markdown(response.text)
-                except Exception as e:
-                    st.error(f"Error: {e}")
+            if model is None:
+                st.error("No compatible AI model found for your API key. Please check Google AI Studio.")
+            else:
+                with st.spinner(f"Chronos is analyzing using {model.model_name}..."):
+                    try:
+                        prompt = "Analyze this product image. Provide a catchy title, a professional description in both Arabic and English, and suggest 5 hashtags."
+                        response = model.generate_content([prompt, img])
+                        st.success("Analysis Complete!")
+                        st.markdown(response.text)
+                    except Exception as e:
+                        st.error(f"Error: {e}")
