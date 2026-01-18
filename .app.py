@@ -9,7 +9,7 @@ st.set_page_config(page_title="Chronos AI Studio", page_icon="⏳", layout="cent
 # 2. الربط مع Gemini (تأكد من وضع مفتاحك هنا)
 API_KEY = os.getenv("GEMINI_API_KEY") 
 genai.configure(api_key=API_KEY)
-model = genai.GenerativeModel('gemini-1.5-flash')
+model = genai.GenerativeModel('gemini-1.5-flash-latest')
 
 # 3. تصميم رأس الصفحة
 st.title("⏳ CHRONOS")
