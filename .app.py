@@ -1,30 +1,17 @@
 import streamlit as st
 import google.generativeai as genai
-import os
 from PIL import Image
 
 st.set_page_config(page_title="Chronos AI Studio", page_icon="⏳")
 
+# جلب المفتاح
 api_key = st.secrets.get("GEMINI_API_KEY")
 
 if not api_key:
-    st.error("Missing API Key! Please add it to Streamlit Secrets.")
+    st.error("Missing API Key!")
 else:
     genai.configure(api_key=api_key)
     
-    # محاولة اختيار أفضل موديل متاح بشكل آمن
-    available_models = ["gemini-1.5-flash", "gemini-1.5-pro", "gemini-pro-vision"]
-    model = None
-    
-    for model_name in available_models:
-        try:
-            model = genai.GenerativeModel(model_name)
-            # تجربة وهمية للتأكد أن الموديل يعمل
-            model.generate_content("test") 
-            break
-        except:
-            continue
-
     st.title("⏳ CHRONOS AI")
     st.write("Merchant Studio: From Photo to Profit")
     
@@ -35,14 +22,19 @@ else:
         st.image(img, caption="Target Product", use_container_width=True)
         
         if st.button("🚀 Analyze & Generate Listing"):
-            if model is None:
-                st.error("No compatible AI model found for your API key. Please check Google AI Studio.")
-            else:
-                with st.spinner(f"Chronos is analyzing using {model.model_name}..."):
+            with st.spinner("Processing..."):
+                try:
+                    # استخدام اسم الموديل بدون بادئة models/ كحل أخير
+                    model = genai.GenerativeModel('gemini-1.5-flash')
+                    prompt = "Describe this product professionally in Arabic and English for a merchant listing."
+                    response = model.generate_content([prompt, img])
+                    st.success("Done!")
+                    st.markdown(response.text)
+                except Exception as e:
+                    # إذا فشل، جرب الموديل القديم المستقر جداً
                     try:
-                        prompt = "Analyze this product image. Provide a catchy title, a professional description in both Arabic and English, and suggest 5 hashtags."
+                        model = genai.GenerativeModel('gemini-pro-vision')
                         response = model.generate_content([prompt, img])
-                        st.success("Analysis Complete!")
                         st.markdown(response.text)
-                    except Exception as e:
-                        st.error(f"Error: {e}")
+                    except:
+                        st.error(f"Please check your API Key permissions. Error: {e}")
